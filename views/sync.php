@@ -13,14 +13,15 @@
                     <th class="manage-column column-title">Profil public</th>
                     <th class="manage-column column-title">Dernière synchro</th>
                     <th class="manage-column column-title">MAJ Profil</th>
-                    <th class="manage-column column-title">À jour</th>
+                    <th class="manage-column column-title">À jour (avant synchro)</th>
+                    <th class="manage-column column-title">Sync action</th>
                 </tr>
             </thead>
             <tbody>
             <?php foreach($coworkers as $coworker): ?>
             <tr>
                 <td><?php echo $coworker['first_name'] . ' ' . $coworker['last_name'] ?></td>
-                <td><?php echo $coworker['public_enable'] ?></td>
+                <td><?php echo $coworker['public_enable'] ? "Oui" : "Non" ?></td>
                 <td>
                     <?php if ($coworker['_post_slug']) { ?>
                         <a target="_blank" href="<?php echo $coworker['_post_link'] ?>"><?php echo $coworker['_post_slug'] ?></a>
@@ -35,6 +36,11 @@
                 <td>
                     <?php if ($coworker['_post_modified']) { ?>
                         <?php echo $coworker['_is_up_to_date'] ? "Oui" : "Non" ?>
+                    <?php } ?>
+                </td>
+                <td>
+                    <?php if ($coworker['_sync_action']) { ?>
+                        <?php echo $coworker['_sync_action'] ?>
                     <?php } ?>
                 </td>
             </tr>
