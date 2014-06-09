@@ -1,6 +1,13 @@
 <div class="wrap">
     <h2>Synchroniser avec l'Intranet</h2>
 
+    <?php if (!$connection_valid) { ?>
+        <div class="error settings-error">
+            <p><strong>La connection avec l'Intranet XWiki ADM n'est pas configurée correctement.
+                    Vérifiez les informations dans "Réglages -> XWiki / ADM"</strong></p>
+        </div>
+    <?php } else { ?>
+
     <form method="POST">
         <input type="hidden" name="action" value="sync_coworkers">
 
@@ -53,5 +60,7 @@
             <input class="button button-primary" type="submit" value="Synchroniser (cela peut prendre un peu de temps)">
         </p>
     </form>
+
+    <?php } ?>
 
 </div>

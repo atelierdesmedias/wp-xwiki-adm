@@ -9,6 +9,8 @@ use Guzzle\Common\Event as Guzzle_Event;
  */
 class XWiki_Adm
 {
+    private static $service_page = 'xwiki/bin/get/XWiki/CoworkersService?xpage=plain&outputSyntax=plain';
+
     /**
      * Initiates the plugin's environment.
      */
@@ -30,6 +32,28 @@ class XWiki_Adm
     }
 
     /**
+     * Test if the connection to the XWiki ADM Intranet is correctly configured
+     *
+     * @return true if it is, false if not
+     */
+    public static function test_connection()
+    {
+        $endpoint = get_option('xwiki_adm_endpoint');
+        $client = new Guzzle_Client($endpoint);
+        $request = $client->get('/');
+        $request->setAuth(get_option('xwiki_adm_user'), get_option('xwiki_adm_pass'));
+        $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYHOST, false);
+        $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYPEER, false);
+        try {
+            $request->send();
+            return true;
+        }
+        catch (\Guzzle\Http\Exception\ClientErrorResponseException $e) {
+            return false;
+        }
+    }
+
+    /**
      * Fetch coworkers from JSON service page on XWiki (XWiki.CoworkersService).
      *
      * @return \Guzzle\Http\Message\Response
@@ -37,8 +61,8 @@ class XWiki_Adm
     public static function get_coworkers()
     {
         $client = self::json_client();
-        $request = $client->get('xwiki/bin/get/XWiki/CoworkersService?xpage=plain&outputSyntax=plain')
-            ->setAuth('JeromeVelociter', 'JeromeVelociter');;
+        $request = $client->get(self::$service_page);
+        $request->setAuth(get_option('xwiki_adm_user'), get_option('xwiki_adm_pass'));
         $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYHOST, false);
         $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYPEER, false);
         return $request->send();
@@ -65,7 +89,12 @@ class XWiki_Adm
 
             $slug = sanitize_title($coworker['first_name'] . ' ' . $coworker['last_name']);
 
-            $post = XWiki_Adm::get_coworker_post_by_slug($slug);
+            if (trim($slug) === '') {
+                // Ignore if there's no first name and last name
+                continue;
+            }
+
+            $post = self::get_coworker_post_by_slug($slug);
 
             $public = $coworker['public_enable'];
 
@@ -214,7 +243,7 @@ class XWiki_Adm
 
             $client = new Guzzle\Http\Client();
             $request = $client->get($profile_pic);
-            $request->setAuth('JeromeVelociter', 'JeromeVelociter');
+            $request->setAuth(get_option('xwiki_adm_user'), get_option('xwiki_adm_pass'));
             $request->setResponseBody($file);
             $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYHOST, false);
             $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYPEER, false);

@@ -4,6 +4,8 @@ class XWiki_Adm_Sync {
 
     private static $coworkers = array();
 
+    private static $connection_valid;
+
     public static function init()
     {
         if (!$initHappened) {
@@ -42,10 +44,13 @@ class XWiki_Adm_Sync {
      */
     private static function render()
     {
+        self::$connection_valid = XWiki_Adm::test_connection();
+
         $tpl_folder = __DIR__ . '/../views/';
 
         $render = function ($tpl)  {
             $coworkers = self::$coworkers;
+            $connection_valid = self::$connection_valid;
             include $tpl;
         };
 

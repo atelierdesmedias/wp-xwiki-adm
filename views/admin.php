@@ -6,13 +6,34 @@
 
         <table class="form-table">
             <tbody>
+                <!-- End-point -->
                 <tr>
                     <th>
-                        <label for="endpoint">XWiki address</label>
+                        <label for="endpoint">Addresse Intranet XWiki</label>
                     </th>
                     <td>
                         <input id="endpoint" class="regular-text" type="text" name="xwiki_adm_endpoint"
                                value="<?php $o('xwiki_adm_endpoint'); ?>">
+                    </td>
+                </tr>
+                <!-- User-->
+                <tr>
+                    <th>
+                        <label for="endpoint">Utilisateur compte de service</label>
+                    </th>
+                    <td>
+                        <input id="endpoint" class="regular-text" type="text" name="xwiki_adm_user"
+                               value="<?php $o('xwiki_adm_user'); ?>">
+                    </td>
+                </tr>
+                <!-- Password-->
+                <tr>
+                    <th>
+                        <label for="endpoint">Mot de passe compte de service</label>
+                    </th>
+                    <td>
+                        <input id="endpoint" class="regular-text" type="text" name="xwiki_adm_pass"
+                               value="<?php $o('xwiki_adm_pass'); ?>">
                     </td>
                 </tr>
             </tbody>
