@@ -9,7 +9,6 @@ use Guzzle\Common\Event as Guzzle_Event;
  */
 class XWiki_Adm
 {
-
     /**
      * Initiates the plugin's environment.
      */
@@ -83,9 +82,16 @@ class XWiki_Adm
 
                 $post = XWiki_Adm::get_coworker_post_by_slug($slug);
                 $coworker['_sync_action'] = 'created';
+            } else if (isset($post) && !$public) {
+                // Coworker post exists, but does not want to be public -> delete (bypass trash)
+                wp_delete_post($post->ID, true);
+                $coworker['_sync_action'] = 'removed';
+                unset($post);
             }
 
             if ($post) {
+                // Post exists : check if it needs to be updated
+
                 $coworker['_post'] = $post;
                 $coworker['_post_id'] = $post->ID;
                 $coworker['_post_link'] = get_permalink($post->ID);
@@ -126,17 +132,14 @@ class XWiki_Adm
     {
         $post = $coworker['_post'];
 
-        // WARNING: This gives back only the custom fields that HAVE ALREADY BEEN SET
-        // TODO: find a way to get the definition list instead
-        $custom_fields = get_post_custom($post->ID);
+        $meta_keys = self::get_coworker_meta_keys();
 
-        foreach ($custom_fields as $key => $value) {
-            $actual_key = substr($key, 1);
-            if (isset($coworker[$actual_key])) {
-                $value = $coworker[$actual_key];
+        foreach ($meta_keys as $key) {
+            if (isset($coworker[$key])) {
+                $value = $coworker[$key];
 
-                // Update the meta
-                update_post_meta($post->ID, $key, $value);
+                // Add or update the meta
+                add_post_meta($post->ID, '_' . $key, $value, true ) || update_post_meta($post->ID, '_' . $key, $value);
             }
         }
 
@@ -146,6 +149,29 @@ class XWiki_Adm
 
         // Force pdate last modification date
         wp_update_post($post);
+    }
+
+    /**
+     * Retrieves all the meta keys for the adm_coworker custom type.
+     *
+     * @return the array of keys
+     */
+    public static function get_coworker_meta_keys()
+    {
+        global $wpdb;
+        $post_type = 'adm_coworker';
+        $query = "
+          SELECT DISTINCT($wpdb->postmeta.meta_key)
+          FROM $wpdb->posts
+          LEFT JOIN $wpdb->postmeta
+          ON $wpdb->posts.ID = $wpdb->postmeta.post_id
+          WHERE $wpdb->posts.post_type = '%s'
+          AND $wpdb->postmeta.meta_key != ''
+          AND $wpdb->postmeta.meta_key NOT RegExp '(^[_0-9].+$)'
+          AND $wpdb->postmeta.meta_key NOT RegExp '(^[0-9]+$)'
+        ";
+        $meta_keys = $wpdb->get_col($wpdb->prepare($query, $post_type));
+        return $meta_keys;
     }
 
     /**
@@ -257,24 +283,6 @@ class XWiki_Adm
         }
 
         return $client;
-    }
-
-    private static function local_date_i18n($format, $timestamp) {
-        $timezone_str = get_option('timezone_string') ?: 'UTC';
-        $timezone = new \DateTimeZone($timezone_str);
-
-        // The date in the local timezone.
-        $date = new \DateTime(null, $timezone);
-        $date->setTimestamp($timestamp);
-        $date_str = $date->format('Y-m-d H:i:s');
-
-        // Pretend the local date is UTC to get the timestamp
-        // to pass to date_i18n().
-        $utc_timezone = new \DateTimeZone('UTC');
-        $utc_date = new \DateTime($date_str, $utc_timezone);
-        $timestamp = $utc_date->getTimestamp();
-
-        return date_i18n($format, $timestamp, true);
     }
 
 } 

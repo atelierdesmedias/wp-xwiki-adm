@@ -34,7 +34,7 @@
                 </td>
                 <td><?php echo $coworker['update_date'] ?></td>
                 <td>
-                    <?php if ($coworker['_post_modified']) { ?>
+                    <?php if ($coworker['_post_modified'] && $coworker['_sync_action'] != 'created') { ?>
                         <?php echo $coworker['_is_up_to_date'] ? "Oui" : "Non" ?>
                     <?php } ?>
                 </td>
@@ -50,7 +50,7 @@
         <?php } ?>
 
         <p class="submit">
-            <input class="button button-primary" type="submit" value="Synchroniser">
+            <input class="button button-primary" type="submit" value="Synchroniser (cela peut prendre un peu de temps)">
         </p>
     </form>
 
