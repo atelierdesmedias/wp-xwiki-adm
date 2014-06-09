@@ -218,21 +218,26 @@ class XWiki_Adm
             $request->setResponseBody($file);
             $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYHOST, false);
             $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYPEER, false);
-            $request->send();
+            try {
+                $request->send();
 
-            $wp_filetype = wp_check_filetype($filename, null);
-            $attachment = array(
-                'post_mime_type' => $wp_filetype['type'],
-                'post_title' => sanitize_file_name($filename),
-                'post_content' => '',
-                'post_status' => 'inherit'
-            );
-            $attach_id = wp_insert_attachment($attachment, $file, $post->ID);
-            require_once(ABSPATH . 'wp-admin/includes/image.php');
-            $attach_data = wp_generate_attachment_metadata($attach_id, $file);
-            wp_update_attachment_metadata($attach_id, $attach_data);
+                $wp_filetype = wp_check_filetype($filename, null);
+                $attachment = array(
+                    'post_mime_type' => $wp_filetype['type'],
+                    'post_title' => sanitize_file_name($filename),
+                    'post_content' => '',
+                    'post_status' => 'inherit'
+                );
+                $attach_id = wp_insert_attachment($attachment, $file, $post->ID);
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                $attach_data = wp_generate_attachment_metadata($attach_id, $file);
+                wp_update_attachment_metadata($attach_id, $attach_data);
 
-            set_post_thumbnail($post->ID, $attach_id);
+                set_post_thumbnail($post->ID, $attach_id);
+
+            } catch (\Guzzle\Http\Exception\ClientErrorResponseException $e) {
+              // Probably a 404, just ignore
+            }
         }
     }
 
