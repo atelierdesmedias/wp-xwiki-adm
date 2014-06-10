@@ -83,7 +83,11 @@ class XWiki_Adm
         foreach ($coworkers as &$coworker) {
 
             $update_date = new DateTime();
-            $update_date->setTimezone(new DateTimeZone(ini_get('date.timezone')));
+            $tz = ini_get('date.timezone');
+            if (!isset($tz) || $tz === '') {
+              $tz = "Europe/Paris";
+            }
+            $update_date->setTimezone(new DateTimeZone($tz));
             $update_date->setTimestamp($coworker['_update_date'] / 1000);
             $coworker['update_date'] = $update_date->format('Y-m-d H:i:s');
 
@@ -130,7 +134,7 @@ class XWiki_Adm
 
                 // WP date is stored as GMT, not in local time, thus we compute the offset and take it off the post
                 // modified date so that the comparison is correct
-                $dtz = new DateTimeZone(ini_get('date.timezone'));
+                $dtz = new DateTimeZone($tz);
                 $dt = new DateTime("now", $dtz);
                 $offset = $dtz->getOffset($dt);
                 $is_up_to_date = ($sync_date->format('U') - $offset) > $update_date->format('U');
@@ -164,11 +168,12 @@ class XWiki_Adm
         $meta_keys = self::get_coworker_meta_keys();
 
         foreach ($meta_keys as $key) {
-            if (isset($coworker[$key])) {
-                $value = $coworker[$key];
+            $actual_key = substr($key, 1);
+            if (isset($coworker[$actual_key])) {
+                $value = $coworker[$actual_key];
 
                 // Add or update the meta
-                add_post_meta($post->ID, '_' . $key, $value, true ) || update_post_meta($post->ID, '_' . $key, $value);
+                add_post_meta($post->ID, $key, $value, true ) || update_post_meta($post->ID, $key, $value);
             }
         }
 
@@ -196,8 +201,6 @@ class XWiki_Adm
           ON $wpdb->posts.ID = $wpdb->postmeta.post_id
           WHERE $wpdb->posts.post_type = '%s'
           AND $wpdb->postmeta.meta_key != ''
-          AND $wpdb->postmeta.meta_key NOT RegExp '(^[_0-9].+$)'
-          AND $wpdb->postmeta.meta_key NOT RegExp '(^[0-9]+$)'
         ";
         $meta_keys = $wpdb->get_col($wpdb->prepare($query, $post_type));
         return $meta_keys;
