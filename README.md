@@ -18,7 +18,7 @@ Limitations
 Pour y remédier, soit relancer la synchro - elle sera reprise là ou elle s'est arrêtée, soit augmenter le timeout dans les settings.
 * Il n'y a pas de fichiers de mapping en tre XWiki et Wordpress.
 Tous les champs de XWiki sont synchronisés.
-Les clés sont simplement préfixés par un underscore dans Wordpress.
+Les clés sont simplement préfixées par un underscore dans Wordpress.
 
 
 TODO
