@@ -164,48 +164,21 @@ class XWiki_Adm
     public static function synchronize_coworker($coworker)
     {
         $post = $coworker['_post'];
-
-        $meta_keys = self::get_coworker_meta_keys();
-
-        foreach ($meta_keys as $key) {
-            $actual_key = substr($key, 1);
-            if (isset($coworker[$actual_key])) {
-                $value = $coworker[$actual_key];
-
-                // Add or update the meta
-                add_post_meta($post->ID, $key, $value, true ) || update_post_meta($post->ID, $key, $value);
-            }
+        
+        foreach (array_keys($coworker) as $key) {
+            $wp_key = '_'.$key;
+            $value = $coworker[$key];
+            update_post_meta($post->ID, $wp_key, $value);
         }
 
         wp_set_post_terms($post->ID, $coworker['tags'], 'adm_coworker_tag');
 
         self::synchronize_profile_picture($coworker);
 
-        // Force pdate last modification date
+        // Force update last modification date
         wp_update_post($post);
     }
-
-    /**
-     * Retrieves all the meta keys for the adm_coworker custom type.
-     *
-     * @return the array of keys
-     */
-    public static function get_coworker_meta_keys()
-    {
-        global $wpdb;
-        $post_type = 'adm_coworker';
-        $query = "
-          SELECT DISTINCT($wpdb->postmeta.meta_key)
-          FROM $wpdb->posts
-          LEFT JOIN $wpdb->postmeta
-          ON $wpdb->posts.ID = $wpdb->postmeta.post_id
-          WHERE $wpdb->posts.post_type = '%s'
-          AND $wpdb->postmeta.meta_key != ''
-        ";
-        $meta_keys = $wpdb->get_col($wpdb->prepare($query, $post_type));
-        return $meta_keys;
-    }
-
+    
     /**
      * Downloads and set as featured image the profile picture of a coworker if necessary.
      *
