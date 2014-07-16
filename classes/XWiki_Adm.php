@@ -115,8 +115,8 @@ class XWiki_Adm
 
                 $post = XWiki_Adm::get_coworker_post_by_slug($slug);
                 $coworker['_sync_action'] = 'created';
-            } else if (isset($post) && !$public) {
-                // Coworker post exists, but does not want to be public -> delete (bypass trash)
+            } else if (isset($post) && !$public || $coworker['active'] == 0) {
+                // Coworker post exists, but does not want to be public or has been inactivated -> delete (bypass trash)
                 wp_delete_post($post->ID, true);
                 $coworker['_sync_action'] = 'removed';
                 unset($post);
