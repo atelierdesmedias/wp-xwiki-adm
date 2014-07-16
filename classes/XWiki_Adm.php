@@ -177,7 +177,7 @@ class XWiki_Adm
             update_post_meta($post->ID, $wp_key, $value);
         }
 
-        wp_set_post_terms($post->ID, $coworker['tags'], 'adm_coworker_tag');
+        wp_set_post_terms($post->ID, $coworker['_tags'], 'adm_coworker_tag');
 
         self::synchronize_profile_picture($coworker);
 
