@@ -11,13 +11,15 @@ class XWiki_Adm
 {
     private static $service_page = 'xwiki/bin/get/XWiki/CoworkersService?xpage=plain&outputSyntax=plain';
 
+    private static $initialized = false;
+
     /**
      * Initiates the plugin's environment.
      */
     public static function init()
     {
 
-        if (!$initHappened) {
+        if (!self::$initialized) {
             session_start();
 
             // Initialize the admin screen
@@ -27,7 +29,7 @@ class XWiki_Adm
             XWiki_Adm_Sync::init();
 
             // Avoid a second execution of this method
-            static $initHappened = true;
+            self::$initialized = true;
         }
     }
 

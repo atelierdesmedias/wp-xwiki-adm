@@ -6,9 +6,11 @@ class XWiki_Adm_Sync {
 
     private static $connection_valid;
 
+    private static $initialized = false;
+
     public static function init()
     {
-        if (!$initHappened) {
+        if (!self::$initialized) {
             add_action('admin_menu', function () {
 
                 self::handle_form();
@@ -26,7 +28,7 @@ class XWiki_Adm_Sync {
             });
 
             // Avoid a second execution of this method.
-            static $initHappened = true;
+            self::$initialized = true;
         }
     }
 

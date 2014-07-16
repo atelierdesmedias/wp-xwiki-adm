@@ -5,11 +5,13 @@
  */
 class XWiki_Adm_Admin {
 
+    private static $initialized = false;
+
     /**
      * Creates and adds the admin page to the Wordpress menu.
      */
     public static function init() {
-        if(!$initHappened) {
+        if(!self::$initialized) {
             add_action('admin_menu', function() {
                 self::handle_form();
 
@@ -22,7 +24,7 @@ class XWiki_Adm_Admin {
             });
 
             // Avoid a second execution of this method.
-            static $initHappened = true;
+            self::$initialized = true;
         }
     }
 
