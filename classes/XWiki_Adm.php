@@ -166,6 +166,12 @@ class XWiki_Adm
         $post = $coworker['_post'];
         
         foreach (array_keys($coworker) as $key) {
+
+            // Verify if key is not blacklisted (starts with a underscore), in which case, ignore this key
+            if (strpos($key, '_') === 0) {
+                continue;
+            }
+
             $wp_key = '_'.$key;
             $value = $coworker[$key];
             update_post_meta($post->ID, $wp_key, $value);
