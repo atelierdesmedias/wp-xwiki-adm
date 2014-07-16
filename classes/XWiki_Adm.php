@@ -9,8 +9,36 @@ use Guzzle\Common\Event as Guzzle_Event;
  */
 class XWiki_Adm
 {
+    /**
+     * The path of the WS end-point on XWiki
+     */
     private static $service_page = 'xwiki/bin/get/XWiki/CoworkersService?xpage=plain&outputSyntax=plain';
 
+    /**
+     * The custom type to map to
+     */
+    private static $coworker_custom_type = 'adm_coworker';
+
+    /**
+     * Mapping that links a XWiki WS taxonomy field to the corresponding WP taxonomy key.
+     */
+    private static $taxonomies_mapping = array(
+        "_tags" => 'adm_coworker_tag'
+    );
+
+    /*
+     * The field on XWiki side that indicates a profile is active.
+     */
+    private static $profile_active_field = 'active';
+
+    /*
+     * The field on XWiki side that indicates a profile is public.
+     */
+    private static $profile_public_field = 'public_enable';
+
+    /**
+     * Have we been initialized yet ?
+     */
     private static $initialized = false;
 
     /**
@@ -102,7 +130,7 @@ class XWiki_Adm
 
             $post = self::get_coworker_post_by_slug($slug);
 
-            $public = $coworker['public_enable'];
+            $public = $coworker[self::$profile_public_field];
 
             if (!isset($post) && $public) {
                 // Creating post for new coworker!
@@ -110,14 +138,14 @@ class XWiki_Adm
                     'post_title' => $coworker['first_name'] . ' ' . $coworker['last_name'],
                     'post_status' => 'publish',
                     'post_name' => $slug,
-                    'post_type' => 'adm_coworker'
+                    'post_type' => self::$coworker_custom_type
                 );
 
                 wp_insert_post($new_post);
 
                 $post = XWiki_Adm::get_coworker_post_by_slug($slug);
                 $coworker['_sync_action'] = 'created';
-            } else if (isset($post) && !$public || $coworker['active'] === 0) {
+            } else if (isset($post) && !$public || $coworker[self::$profile_active_field] === 0) {
                 // Coworker post exists, but does not want to be public or has been inactivated -> delete (bypass trash)
                 wp_delete_post($post->ID, true);
                 $coworker['_sync_action'] = 'removed';
@@ -179,7 +207,10 @@ class XWiki_Adm
             update_post_meta($post->ID, $wp_key, $value);
         }
 
-        wp_set_post_terms($post->ID, $coworker['_tags'], 'adm_coworker_tag');
+        foreach (self::$taxonomies_mapping as $key => $value)
+        {
+            wp_set_post_terms($post->ID, $coworker[$key], $value);
+        }
 
         self::synchronize_profile_picture($coworker);
 
