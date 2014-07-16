@@ -42,7 +42,7 @@
   #foreach($tag in $coworkerObject.getProperty("tags").value)&#xd;
     $tags.add( $tagsMap.get($tag).value )&#xd;
   #end&#xd;
-  $coworkerResult.put("tags", $tags)&#xd;
+  $coworkerResult.put("_tags", $tags)&#xd;
   $coworkerResult.put("_update_date", $coworkerProfile.date)&#xd;
   #if($coworkerObject.getProperty('avatar'))&#xd;
   $coworkerResult.put("_profile_picture", "${coworkerProfile.getExternalURL('download')}/${coworkerObject.getProperty('avatar').value}")&#xd;
