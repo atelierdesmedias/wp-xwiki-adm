@@ -16,6 +16,4 @@ spl_autoload_register(function($class) {
 // Initiate the Mayocat environment
 XWiki_Adm::init();
 
-print_r( "Hello" );
-
-//print_r( XWiki_Adm::synchronize_all() );
+print_r( XWiki_Adm::synchronize_all() );
