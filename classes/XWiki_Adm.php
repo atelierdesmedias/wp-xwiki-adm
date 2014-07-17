@@ -240,11 +240,14 @@ class XWiki_Adm
             $current_featured_image_id = get_post_thumbnail_id($post->ID);
             if (isset($current_featured_image_id)) {
                 $current_featured_image = wp_get_attachment_metadata($current_featured_image_id);
-                $current_file_name = basename($current_featured_image['file']);
 
-                if ($current_file_name == $filename) {
-                    // This is likely the same file : ignore
-                    return;
+                if (isset($current_featured_image['file'])) {
+                    $current_file_name = basename($current_featured_image['file']);
+
+                    if ($current_file_name == $filename) {
+                        // This is likely the same file : ignore
+                        return;
+                    }
                 }
             }
 
