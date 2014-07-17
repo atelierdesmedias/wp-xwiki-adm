@@ -10,6 +10,15 @@ Installation
 
 Il suffit de déposer le dossier dans le repertoire ```wp-content/plugins``` de l'installation WordPress.
 
+Mode automatique
+----------------
+
+Le déclenchement de la synchronisation peut se faire automatiquement via cron. Il faut que le script soit exécuté avec un utilisateur qui a le droit d'écrire dans le dossier upload du l'installation WordPress (par exemple l'utilisateur qui fait tourner le service apache).
+
+Exemple d'entrée dans /etc/crontab
+
+    # Synchro ADM
+    0 2 * * * www-data /usr/bin/php -f /var/www/public/wp-content/plugins/wp-xwiki-adm/synchronize.php > /dev/null 2>&1
 
 Limitations
 ------------------
