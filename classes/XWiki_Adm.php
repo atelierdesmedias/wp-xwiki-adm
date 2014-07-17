@@ -1,8 +1,6 @@
 <?php
 
 use Guzzle\Http\Client as Guzzle_Client;
-use Guzzle\Http\Message\Request as Guzzle_Request;
-use Guzzle\Common\Event as Guzzle_Event;
 
 /**
  * Main class of the wp-xwiki-adm plugin, contains all the actual coworker synchronization code.
