@@ -297,7 +297,7 @@ class XWiki_Adm
         $posts = get_posts(array(
             'name' => $slug,
             'posts_per_page' => 1,
-            'post_type' => 'adm_coworker',
+            'post_type' => self::$coworker_custom_type,
             'post_status' => 'publish'
         ));
 
