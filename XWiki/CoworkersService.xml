@@ -9,12 +9,12 @@
   <creationDate>1402217521000</creationDate>
   <author>XWiki.JeromeVelociter</author>
   <contentAuthor>XWiki.JeromeVelociter</contentAuthor>
-  <date>1402428376000</date>
-  <contentUpdateDate>1402427324000</contentUpdateDate>
-  <version>19.1</version>
+  <date>1412005662000</date>
+  <contentUpdateDate>1412005662000</contentUpdateDate>
+  <version>21.3</version>
   <title>Coworkers JSON service</title>
   <comment/>
-  <minorEdit>false</minorEdit>
+  <minorEdit>true</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
   <content>{{velocity output = false}}&#xd;
@@ -47,6 +47,10 @@
   #if($coworkerObject.getProperty('avatar'))&#xd;
   $coworkerResult.put("_profile_picture", "${coworkerProfile.getExternalURL('download')}/${coworkerObject.getProperty('avatar').value}")&#xd;
   $coworkerResult.put("_profile_picture_version", $coworkerProfile.getAttachment(${coworkerObject.getProperty('avatar').value}).version)&#xd;
+  #end&#xd;
+  #if($coworkerObject.getProperty('banner'))&#xd;
+  $coworkerResult.put("_banner_picture", "${coworkerProfile.getExternalURL('download')}/${coworkerObject.getProperty('banner').value}")&#xd;
+  $coworkerResult.put("_banner_picture_version", $coworkerProfile.getAttachment(${coworkerObject.getProperty('banner').value}).version)&#xd;
   #end&#xd;
   $result.coworkers.add($coworkerResult)&#xd;
 #end&#xd;
