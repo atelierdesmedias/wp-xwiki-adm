@@ -212,10 +212,41 @@ class XWiki_Adm
 
         self::synchronize_profile_picture($coworker);
 
+        self::synchronize_banner_picture($coworker);
+
         // Force update last modification date
         wp_update_post($post);
     }
-    
+
+    /**
+     * Downloads and saves in banner custom type the banner picture of the coworker, if any
+     *
+     * @param $coworker the coworker whose picture to download and set as featured image
+     */
+    public static function synchronize_banner_picture($coworker)
+    {
+        $post = $coworker['_post'];
+
+        $banner_pic = $coworker['_banner_picture'];
+        $version = $coworker['_banner_picture_version'];
+
+        if (isset($banner_pic)) {
+            $filename = self::get_file_name($banner_pic, $version);
+
+            // Check if current featured image has the same name
+            $current_banner_id = get_post_meta($post->ID, '_banner', true);
+            if (self::file_exists($current_banner_id, $filename)) {
+                // This is likely the same file : ignore
+                return;
+            }
+
+            $callback = function ($attach_id) use ($post) {
+                update_post_meta($post->ID, '_banner', $attach_id);
+            };
+            self::download_file($post, $banner_pic, $filename, $callback);
+        }
+    }
+
     /**
      * Downloads and set as featured image the profile picture of a coworker if necessary.
      *
@@ -229,60 +260,19 @@ class XWiki_Adm
         $version = $coworker['_profile_picture_version'];
 
         if (isset($profile_pic)) {
-            $upload_dir = wp_upload_dir();
-            $filename = basename($profile_pic);
-
-            // Construct the file name with its version on XWiki has a prefix, so that it gets updated properly if a
-            // new version is uploaded
-            $filename = sanitize_file_name($version . '_' . $filename);
+            $filename = self::get_file_name($profile_pic, $version);
 
             // Check if current featured image has the same name
             $current_featured_image_id = get_post_thumbnail_id($post->ID);
-            if (isset($current_featured_image_id)) {
-                $current_featured_image = wp_get_attachment_metadata($current_featured_image_id);
-
-                if (isset($current_featured_image['file'])) {
-                    $current_file_name = basename($current_featured_image['file']);
-
-                    if ($current_file_name == $filename) {
-                        // This is likely the same file : ignore
-                        return;
-                    }
-                }
+            if (self::file_exists($current_featured_image_id, $filename)) {
+                // This is likely the same file : ignore
+                return;
             }
 
-            if (wp_mkdir_p($upload_dir['path'])) {
-                $file = $upload_dir['path'] . '/' . $filename;
-            } else {
-                $file = $upload_dir['basedir'] . '/' . $filename;
-            }
-
-            $client = new Guzzle\Http\Client();
-            $request = $client->get($profile_pic);
-            $request->setAuth(get_option('xwiki_adm_user'), get_option('xwiki_adm_pass'));
-            $request->setResponseBody($file);
-            $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYHOST, false);
-            $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYPEER, false);
-            try {
-                $request->send();
-
-                $wp_filetype = wp_check_filetype($filename, null);
-                $attachment = array(
-                    'post_mime_type' => $wp_filetype['type'],
-                    'post_title' => sanitize_file_name($filename),
-                    'post_content' => '',
-                    'post_status' => 'inherit'
-                );
-                $attach_id = wp_insert_attachment($attachment, $file, $post->ID);
-                require_once(ABSPATH . 'wp-admin/includes/image.php');
-                $attach_data = wp_generate_attachment_metadata($attach_id, $file);
-                wp_update_attachment_metadata($attach_id, $attach_data);
-
+            $callback = function ($attach_id) use ($post) {
                 set_post_thumbnail($post->ID, $attach_id);
-
-            } catch (\Guzzle\Http\Exception\ClientErrorResponseException $e) {
-              // Probably a 404, just ignore
-            }
+            };
+            self::download_file($post, $profile_pic, $filename, $callback);
         }
     }
 
@@ -306,6 +296,69 @@ class XWiki_Adm
         }
 
         return $posts[0];
+    }
+
+    private static function file_exists($id, $filename)
+    {
+        if (isset($id)) {
+            $image = wp_get_attachment_metadata($id);
+
+            if (isset($image['file'])) {
+                $current_file_name = basename($image['file']);
+
+                if ($current_file_name == $filename) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static function get_file_name($full_path, $version)
+    {
+        $filename = basename($full_path);
+        // Construct the file name with its version on XWiki has a prefix, so that it gets updated properly if a
+        // new version is uploaded
+        $filename = sanitize_file_name($version . '_' . $filename);
+
+        return $filename;
+    }
+
+    private static function download_file($post, $full_path, $filename, $callback)
+    {
+        $upload_dir = wp_upload_dir();
+        if (wp_mkdir_p($upload_dir['path'])) {
+            $file = $upload_dir['path'] . '/' . $filename;
+        } else {
+            $file = $upload_dir['basedir'] . '/' . $filename;
+        }
+
+        $client = new Guzzle\Http\Client();
+        $request = $client->get($full_path);
+        $request->setAuth(get_option('xwiki_adm_user'), get_option('xwiki_adm_pass'));
+        $request->setResponseBody($file);
+        $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYHOST, false);
+        $request->getCurlOptions()->set(CURLOPT_SSL_VERIFYPEER, false);
+        try {
+            $request->send();
+
+            $wp_filetype = wp_check_filetype($filename, null);
+            $attachment = array(
+                'post_mime_type' => $wp_filetype['type'],
+                'post_title' => sanitize_file_name($filename),
+                'post_content' => '',
+                'post_status' => 'inherit'
+            );
+            $attach_id = wp_insert_attachment($attachment, $file, $post->ID);
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+            $attach_data = wp_generate_attachment_metadata($attach_id, $file);
+            wp_update_attachment_metadata($attach_id, $attach_data);
+
+            $callback($attach_id);
+
+        } catch (\Guzzle\Http\Exception\ClientErrorResponseException $e) {
+            // Probably a 404, just ignore
+        }
     }
 
     /**
@@ -334,5 +387,4 @@ class XWiki_Adm
 
         return $client;
     }
-
 } 
