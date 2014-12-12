@@ -148,6 +148,8 @@ class XWiki_Adm
                 wp_delete_post($post->ID, true);
                 $coworker['_sync_action'] = 'removed';
                 unset($post);
+            } else {
+                $coworker['_sync_action'] = 'updated';
             }
 
             if ($post) {
@@ -170,14 +172,8 @@ class XWiki_Adm
                 $coworker['_is_up_to_date'] = $is_up_to_date;
                 $coworker['_post_modified'] = $sync_date->format('Y-m-d H:i:s');
 
-                if (!$is_up_to_date || $coworker['_sync_action'] == 'created') {
-
-                    if (!isset($coworker['_sync_action'])) {
-                        $coworker['_sync_action'] = 'updated';
-                    }
-
-                    self::synchronize_coworker($coworker);
-                }
+                // Always synchronise for each coworker
+                self::synchronize_coworker($coworker);
             }
         }
 
