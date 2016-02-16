@@ -358,6 +358,8 @@ class XWiki_Adm
 
         } catch (\Guzzle\Http\Exception\ClientErrorResponseException $e) {
             // Probably a 404, just ignore
+        } catch (\Guzzle\Http\Exception\BadResponseException $e) {
+            // Don't care
         }
     }
 
