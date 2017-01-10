@@ -16,6 +16,7 @@
             <thead>
                 <tr>
                     <th class="manage-column column-title">Nom</th>
+                    <th class="manage-column column-title">Formule OK ?</th>
                     <th class="manage-column column-title">Public OK?</th>
                     <th class="manage-column column-title">Profil public</th>
                     <th class="manage-column column-title">Dernière synchro</th>
@@ -28,6 +29,7 @@
             <?php foreach($coworkers as $coworker): ?>
             <tr>
                 <td><?php echo $coworker['first_name'] . ' ' . $coworker['last_name'] ?></td>
+                <td><?php echo ($coworker['formule'] == "fixe" || $coworker['formule'] == "nomade") ? "Oui" : "Non" ?></td>
                 <td><?php echo $coworker['public_enable'] ? "Oui" : "Non" ?></td>
                 <td>
                     <?php if ($coworker['_post_slug']) { ?>
